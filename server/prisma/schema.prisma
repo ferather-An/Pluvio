@@ -1,0 +1,102 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum DatasetStatus {
+  STAGING
+  PUBLISHED
+  DEPRECATED
+}
+
+model Dataset {
+  id          String        @id @default(cuid())
+  nome        String
+  descricao   String?
+  origem      String?
+  versao      String?
+  status      DatasetStatus @default(STAGING)
+  publicadoEm DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  equations   IdfEquation[]
+
+  @@map("dataset")
+}
+
+model Reference {
+  code        String   @id
+  titulo      String
+  link        String?
+  tipoFonte   String?
+  totalMunicipios Int  @default(0)
+  totalEquacoes   Int  @default(0)
+  municipios      Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  equations   IdfEquation[]
+
+  @@map("reference")
+}
+
+model IdfEquation {
+  id            String        @id @default(cuid())
+  datasetId     String?
+  referenceCode String?
+
+  uf            String        @db.VarChar(2)
+  municipio     String
+  estacao       String
+  codigoEstacao String?
+  agencia       String?
+  sourceSheet   String?
+  equationId    String?
+  equationVersion String?
+
+  latitude      Float?
+  longitude     Float?
+  anosDados     Int?
+  faixaDuracao  String?
+  r2            Float?
+
+  K             Float
+  a             Float
+  b             Float
+  c             Float
+
+  modo          String?
+  modelo        String?
+  metodo        String?
+
+  status        DatasetStatus @default(STAGING)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  dataset       Dataset?      @relation(fields: [datasetId], references: [id], onDelete: SetNull)
+  reference     Reference?    @relation(fields: [referenceCode], references: [code], onDelete: SetNull)
+
+  @@index([uf, municipio])
+  @@index([uf, estacao])
+  @@index([modo])
+  @@index([status])
+  @@map("idf_equation")
+}
+
+model UpdateLog {
+  id          String   @id @default(cuid())
+  acao        String
+  entidade    String
+  entidadeId  String?
+  usuario     String?
+  detalhes    Json?
+  createdAt   DateTime @default(now())
+
+  @@index([entidade, entidadeId])
+  @@map("update_log")
+}

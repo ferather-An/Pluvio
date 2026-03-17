@@ -1,0 +1,61 @@
+export type LegacyReference = {
+    code: string;
+    title: string | null;
+    link: string | null;
+};
+export type LegacyEquation = {
+    id: string;
+    sourceSheet: "Consolidado" | "Standard" | "Disaggregation";
+    uf: string;
+    agency: string | null;
+    code: string | null;
+    municipio: string;
+    estacao: string;
+    latitude: number;
+    longitude: number;
+    years: number;
+    K: number;
+    a: number;
+    b: number;
+    c: number;
+    r2: number | null;
+    durationRange: string | null;
+    referenceCode: string;
+    referenceTitle: string | null;
+    referenceLink: string | null;
+    disaggregationCoefficients: string | null;
+    disaggregationReferenceCode: string | null;
+    disaggregationReferenceTitle: string | null;
+    disaggregationReferenceLink: string | null;
+    equationVersion: string;
+    modo: string | null;
+    modelo: string | null;
+    metodo: string | null;
+};
+export declare class LegacyEquationRepository {
+    private readonly logger;
+    private readonly equations;
+    private readonly references;
+    constructor();
+    listUFs(): string[];
+    listMunicipios(uf: string): string[];
+    listEstacoes(uf?: string, municipio?: string): LegacyEquation[];
+    listReferences(): LegacyReference[];
+    findReferenceByCode(code: string): LegacyReference | null;
+    findById(id: string): LegacyEquation | null;
+    findBestMatch(input: {
+        uf: string;
+        municipio?: string;
+        estacao?: string;
+        modo?: "LEGADO" | "MODERNO" | "AUTO";
+        preferredSheets?: Array<"Consolidado" | "Standard" | "Disaggregation">;
+    }): LegacyEquation | null;
+    private getModeRank;
+    private loadFromWorkbook;
+    private loadConsolidated;
+    private loadLegacyWorkbook;
+    private parseLegacySheet;
+    private resolveWorkbookPath;
+    private toNumber;
+    private normalizeText;
+}
