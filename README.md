@@ -2,7 +2,7 @@
 
 Plataforma web de código aberto para geração de **curvas Intensidade-Duração-Frequência (IDF)** aplicadas a projetos de drenagem urbana no Brasil. Moderniza e amplia o software Plúvio 2.1 (UFV/GPRH) com dados contemporâneos, métodos hidrológicos avançados e interface geográfica interativa.
 
-> Desenvolvido por **André Phillipe dos Santos Batista** — ADS 5° Período, Universidade de Vassouras (2026)
+> Desenvolvido por **André Phillipe dos Santos Batista** — Análise de Desenvolvimento de Sistemas - Projeto Integrador, Universidade de Vassouras (2026)
 
 ---
 
