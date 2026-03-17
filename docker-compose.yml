@@ -1,0 +1,97 @@
+version: "3.9"
+
+services:
+  # ─── Banco de Dados ────────────────────────────────────────────────
+  postgres:
+    image: postgis/postgis:16-3.4
+    container_name: pluvio-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: pluvio
+      POSTGRES_PASSWORD: pluvio2026
+      POSTGRES_DB: pluvio
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pluvio"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── Cache / Fila ──────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: pluvio-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # ─── Backend NestJS ────────────────────────────────────────────────
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: pluvio-server
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://pluvio:pluvio2026@postgres:5432/pluvio
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: pluvio-secret-2026
+      API_KEY: pluvio-api-key-2026
+      NODE_ENV: production
+      PORT: 3001
+    ports:
+      - "3001:3001"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3001/v1/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  # ─── Motor Python / FastAPI ────────────────────────────────────────
+  motor:
+    build:
+      context: ./motor
+      dockerfile: Dockerfile
+    container_name: pluvio-motor
+    restart: unless-stopped
+    environment:
+      PYTHONUNBUFFERED: "1"
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  # ─── Frontend Next.js ──────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: pluvio-frontend
+    restart: unless-stopped
+    depends_on:
+      - server
+      - motor
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:3001/v1
+      NEXT_PUBLIC_MOTOR_URL: http://localhost:8000
+    ports:
+      - "3000:3000"
+
+volumes:
+  pgdata:
